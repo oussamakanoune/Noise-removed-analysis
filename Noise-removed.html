@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Series of Functions — Signal Filter · NHSAT-Algiers Analysis 3</title>
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<style>
+:root{
+  --bg0:#05070a;--bg1:#0b1015;--bg2:#121923;--bg3:#1a2433;
+  --line:#233347;--text:#e6edf5;--dim:#8fa3bd;--mute:#5d6f86;
+  --green:#00e0a4;--blue:#4cc9ff;--violet:#b48cff;--amber:#ffe066;--red:#ff5d6c;
+  --r:14px;--mono:'JetBrains Mono','Fira Code',Consolas,monospace;
+  --sans:'Inter','Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg0);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{
+  background:
+    radial-gradient(1000px 500px at 5% -5%,rgba(0,224,164,.07),transparent 60%),
+    radial-gradient(800px 400px at 105% 5%,rgba(76,201,255,.06),transparent 60%),
+    var(--bg0);
+  min-height:100vh;
+}
+.hdr{border-bottom:1px solid var(--line);background:rgba(11,16,21,.92);backdrop-filter:blur(8px);position:sticky;top:0;z-index:50}
+.hdr-inner{max-width:1300px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{width:42px;height:42px;border-radius:10px;background:#031a11;border:1px solid #123b30;display:grid;place-items:center}
+.logo svg{width:24px;height:24px}
+.htitle h1{font-size:1rem;margin:0;letter-spacing:.3px}
+.htitle small{color:var(--dim);font-size:.75rem}
+.badges{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.bdg{font-size:.7rem;padding:4px 10px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);color:var(--dim);font-family:var(--mono)}
+.bdg.live{color:var(--green);border-color:#133b32}
+.bdg.live::before{content:"● ";color:var(--green)}
+.wrap{max-width:1300px;margin:0 auto;padding:20px}
+.card{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:18px}
+.card h2{margin:0 0 14px;font-size:.88rem;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);font-weight:600;display:flex;align-items:center;gap:8px}
+.card h2::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--green);box-shadow:0 0 8px var(--green)}
+.card h2 .sub{color:var(--mute);font-weight:400;font-size:.74rem;text-transform:none;letter-spacing:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.grid4{grid-template-columns:1fr}}
+.metric{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.metric .k{font-size:.68rem;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+.metric .v{font-family:var(--mono);font-size:1.25rem;font-weight:600;margin-top:4px;color:var(--green)}
+.metric .v.bl{color:var(--blue)}
+.metric .v.vi{color:var(--violet)}
+.metric .v.am{color:var(--amber)}
+.metric small{display:block;margin-top:2px;font-size:.67rem;color:var(--mute);font-family:var(--mono)}
+.sl-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.sl-grid{grid-template-columns:1fr}}
+.sl-box{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.sl-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.sl-top label{font-size:.78rem;color:var(--dim)}
+.sl-top .val{font-family:var(--mono);color:var(--green);font-weight:600;font-size:.9rem}
+.sl-hint{font-size:.68rem;color:var(--mute);margin-top:4px;font-family:var(--mono)}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--green) 0%,var(--green) var(--p,40%),#2a3a52 var(--p,40%));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--green);cursor:pointer;border:2px solid #031912;box-shadow:0 0 8px rgba(0,224,164,.5)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:9px;border:1px solid var(--line);background:var(--bg3);color:var(--text);font-family:var(--sans);font-size:.82rem;cursor:pointer;transition:all .15s;font-weight:500}
+.btn:hover{border-color:var(--green);color:var(--green)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:linear-gradient(180deg,#00c892,#009e74);border-color:#009e74;color:#021a11;font-weight:700}
+.btn.primary:hover{filter:brightness(1.1);color:#021a11}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.status{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.78rem;color:var(--dim);padding:9px 13px;background:var(--bg3);border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--mute)}
+.status.ready .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.status.busy .dot{background:var(--amber);animation:pulse 1s infinite}
+.status.error .dot{background:var(--red)}
+@keyframes pulse{50%{opacity:.25}}
+.ch-wrap{position:relative;background:#03080d;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ch-wrap canvas{display:block;width:100%;height:160px}
+.ch-lbl{position:absolute;top:7px;left:9px;font-family:var(--mono);font-size:.67rem;color:var(--mute);background:rgba(3,8,13,.75);padding:2px 7px;border-radius:4px;letter-spacing:.4px}
+.ch-stat{position:absolute;top:7px;right:9px;font-family:var(--mono);font-size:.67rem;color:var(--dim);background:rgba(3,8,13,.75);padding:2px 7px;border-radius:4px}
+.spec-wrap{position:relative;background:#03080d;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.spec-wrap canvas{display:block;width:100%;height:170px}
+.spec-lbl{position:absolute;top:7px;left:9px;font-family:var(--mono);font-size:.67rem;color:var(--mute);background:rgba(3,8,13,.75);padding:2px 7px;border-radius:4px}
+
+/* ===== SPECTRUM CURVE — NEW ===== */
+.spec-curve-wrap{position:relative;background:#03080d;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.spec-curve-wrap canvas{display:block;width:100%;height:220px}
+.spec-curve-lbl{position:absolute;top:7px;left:9px;font-family:var(--mono);font-size:.67rem;color:var(--mute);background:rgba(3,8,13,.75);padding:2px 7px;border-radius:4px;letter-spacing:.4px}
+/* ================================ */
+
+.cpill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-family:var(--mono);font-size:.75rem;background:rgba(93,111,134,.15);color:var(--dim);border:1px solid var(--line)}
+.cpill.pointwise{background:rgba(255,93,108,.1);color:var(--red);border-color:#4a1515}
+.cpill.uniform{background:rgba(76,201,255,.1);color:var(--blue);border-color:#0c3452}
+.cpill.normal{background:rgba(180,140,255,.1);color:var(--violet);border-color:#3b2e52}
+.formula-box{background:#03080d;border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;margin-bottom:8px}
+.formula-note{font-size:.75rem;color:var(--mute);font-family:var(--mono);line-height:1.6}
+.math-note{background:rgba(0,224,164,.05);border:1px solid rgba(0,224,164,.2);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:.76rem;color:var(--dim);font-family:var(--mono);line-height:1.7}
+.math-note strong{color:var(--green)}
+.theory{border-left:3px solid var(--green);padding:10px 14px;background:rgba(0,224,164,.04);border-radius:0 8px 8px 0;margin-bottom:8px}
+.theory.uniform{border-color:var(--blue);background:rgba(76,201,255,.04)}
+.theory.normal{border-color:var(--violet);background:rgba(180,140,255,.04)}
+.theory h4{font-size:.8rem;font-weight:600;margin-bottom:5px;color:var(--green)}
+.theory.uniform h4{color:var(--blue)}
+.theory.normal h4{color:var(--violet)}
+.theory p{font-size:.78rem;color:var(--dim);line-height:1.6}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.players{grid-template-columns:1fr}}
+.player{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:13px}
+.player h4{font-size:.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.player audio{width:100%;border-radius:6px}
+.drop{border:2px dashed #2a3a52;border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:.2s;background:rgba(255,255,255,.01)}
+.drop:hover,.drop.drag{border-color:var(--green);background:rgba(0,224,164,.03)}
+.drop .ico{font-size:2rem;margin-bottom:8px}
+.drop p{color:var(--text);font-size:.9rem;margin-bottom:4px}
+.drop small{color:var(--mute);font-size:.75rem}
+.drop input{display:none}
+.file-info{margin-top:12px;padding:11px 13px;border-radius:9px;background:var(--bg3);border:1px solid var(--line);display:none;font-family:var(--mono);font-size:.78rem}
+.file-info.show{display:block}
+.fi-row{display:flex;justify-content:space-between;padding:2px 0}
+.fi-k{color:var(--mute)}
+.fi-v{color:var(--blue)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#00e0a4" stroke-width="2">
+        <path d="M3 3h18v18H3z" stroke-width="1" opacity=".3"/>
+        <path d="M3 12h3l3-6 4 12 3-8 2 2h6"/>
+      </svg>
+    </div>
+    <div class="htitle">
+      <h1>Series of Functions — Signal Filter</h1>
+      <small>Pointwise · Uniform · Normal Convergence · Exercise 2 &amp; 5</small>
+    </div>
+    <div class="badges">
+      <span class="bdg">NHSAT-Algiers</span>
+      <span class="bdg">Analysis 3 · 2025/2026</span>
+      <span class="bdg live">Pure Browser</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div id="status" class="status ready">
+    <span class="dot"></span>
+    <span id="statusMsg">Ready. Upload a WAV/MP3 or click "Load Demo Signal".</span>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>1. Audio Input <span class="sub">real signal — noise removal via u_n(x)</span></h2>
+      <label class="drop" id="drop">
+        <div class="ico">🎙️</div>
+        <p><strong>Drop audio here</strong> or click to browse</p>
+        <small>WAV · MP3 · OGG · Max 30 s recommended</small>
+        <input type="file" id="fileInput" accept="audio/*"/>
+      </label>
+      <div id="fileInfo" class="file-info">
+        <div class="fi-row"><span class="fi-k">File</span><span class="fi-v" id="fiName">—</span></div>
+        <div class="fi-row"><span class="fi-k">Duration</span><span class="fi-v" id="fiDur">—</span></div>
+        <div class="fi-row"><span class="fi-k">Sample rate</span><span class="fi-v" id="fiSr">—</span></div>
+        <div class="fi-row"><span class="fi-k">Samples</span><span class="fi-v" id="fiN">—</span></div>
+        <div class="fi-row"><span class="fi-k">Noise estimate</span><span class="fi-v" id="fiNoise">—</span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" id="autoBtn" disabled>✨ Auto Detect + Filter</button>
+        <button class="btn" id="reconBtn" disabled>▶ Apply Filter</button>
+        <button class="btn" id="demoBtn">🎧 Demo Signal</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Filter Parameters <span class="sub">based on u_n(x) from exercise 2</span></h2>
+      <div class="sl-grid">
+        <div class="sl-box">
+          <div class="sl-top"><label>Terms N (partial sum S_N)</label><span class="val" id="vN">20</span></div>
+          <input type="range" id="sN" min="1" max="100" value="20" step="1"/>
+          <div class="sl-hint">S_N(x) = Σₙ₌₀ᴺ u_n(x) — more N = stronger filter</div>
+        </div>
+        <div class="sl-box">
+          <div class="sl-top"><label>Noise threshold α</label><span class="val" id="vAlpha">0.20</span></div>
+          <input type="range" id="sAlpha" min="0" max="80" value="20" step="1"/>
+          <div class="sl-hint">Remove bins where w(k) &lt; α (spectral gate)</div>
+        </div>
+        <div class="sl-box">
+          <div class="sl-top"><label>Frequency cutoff (Hz)</label><span class="val" id="vCut">4000</span></div>
+          <input type="range" id="sCut" min="500" max="12000" value="4000" step="100"/>
+          <div class="sl-hint">Hard cutoff: k_max = cutoff × W / sr</div>
+        </div>
+        <div class="sl-box">
+          <div class="sl-top"><label>Frame size W</label><span class="val" id="vWin">2048</span></div>
+          <input type="range" id="sWin" min="256" max="4096" value="2048" step="256"/>
+          <div class="sl-hint">Hann window per frame (OLA)</div>
+        </div>
+      </div>
+      <div class="btn-row" style="align-items:center">
+        <span style="font-size:.78rem;color:var(--mute)">Convergence:</span>
+        <span id="cpill" class="cpill">— waiting —</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="card">
+    <h2>3. Real-Time Metrics</h2>
+    <div class="grid4">
+      <div class="metric"><div class="k">Active terms</div><div class="v am" id="mActive">—</div><small>u_n with w(k) ≥ α</small></div>
+      <div class="metric"><div class="k">Noise removed</div><div class="v" id="mNoise">—</div><small>% spectral energy rejected</small></div>
+      <div class="metric"><div class="k">SNR estimate</div><div class="v bl" id="mSNR">—</div><small>signal / noise ratio dB</small></div>
+      <div class="metric"><div class="k">Weierstrass Σ</div><div class="v vi" id="mConv">—</div><small>Σ‖u_n‖∞ — always &lt; +∞</small></div>
+    </div>
+  </div>
+
+  <!-- FORMULA -->
+  <div class="card">
+    <h2>4. Mathematical Model <span class="sub">from exercise 2 — updates live with N</span></h2>
+    <div class="formula-box">
+      $$u_n(x) = \frac{e^{-\sqrt{n}\,x^2}}{\sqrt{n^3}+1}, \quad x \in \mathbb{R}_+ \qquad F(x) = \sum_{n=0}^{+\infty} u_n(x)$$
+    </div>
+    <div class="formula-box" id="formulaFilter">
+      $$S_N(x) = \sum_{n=0}^{N} u_n(x) \xrightarrow{N\to\infty} F(x)$$
+    </div>
+    <div class="math-note">
+      <strong>Mapping justification (x ∈ ℝ₊):</strong><br>
+      Each frequency bin k ∈ {0, …, k_max} is mapped to x = k / k_max ∈ [0, 1] ⊂ ℝ₊<br>
+      → x = 0 (DC, 0 Hz): u_n(0) = 1/(√n³+1) → small for large n — keeps signal<br>
+      → x = 1 (cutoff): u_n(1) = e^(−√n)/(√n³+1) → decays fast — attenuates noise<br>
+      → x &gt; 1 (above cutoff): u_n(x) → 0 exponentially — removes high-freq noise
+    </div>
+    <div class="math-note" style="margin-top:6px">
+      <strong>Note on u₀(x):</strong><br>
+      u₀(x) = e^(−√0 · x²) / (√0³+1) = 1 for all x ∈ ℝ₊ (constant term).<br>
+      It acts as the <strong>DC baseline</strong>: w(k) = S_N(x)/S_N(0) normalizes all weights.
+    </div>
+    <div class="formula-note" id="formulaNote" style="margin-top:8px">Load a signal to activate the live parameter formula.</div>
+  </div>
+
+  <!-- WAVEFORMS -->
+  <div class="card">
+    <h2>5. Signal Waveforms <span class="sub">original · noisy · filtered by S_N</span></h2>
+    <div class="grid3">
+      <div>
+        <div class="ch-wrap"><canvas id="cOrig"></canvas><div class="ch-lbl">ORIGINAL</div><div class="ch-stat" id="sOrig">—</div></div>
+      </div>
+      <div>
+        <div class="ch-wrap"><canvas id="cNoisy"></canvas><div class="ch-lbl">RAW INPUT (noisy)</div><div class="ch-stat" id="sNoisy">—</div></div>
+      </div>
+      <div>
+        <div class="ch-wrap"><canvas id="cRecon"></canvas><div class="ch-lbl">FILTERED — S_N(x)</div><div class="ch-stat" id="sRecon">—</div></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:10px;font-size:.78rem;color:var(--dim)">
+      <span>Zoom:</span>
+      <input type="range" id="zoom" min="1" max="50" value="1" step=".5" style="flex:1">
+      <span id="zoomVal" style="font-family:var(--mono);color:var(--green);min-width:42px;text-align:right">1.0×</span>
+      <span>Offset:</span>
+      <input type="range" id="offset" min="0" max="100" value="0" step=".1" style="flex:1">
+      <span id="offVal" style="font-family:var(--mono);color:var(--green);min-width:42px;text-align:right">0%</span>
+    </div>
+  </div>
+
+  <!-- U_N TERMS -->
+  <div class="card">
+    <h2>6. u_n(x) Terms Visualization <span class="sub">each term = one filter layer · x ∈ [0,1] ⊂ ℝ₊</span></h2>
+    <div style="position:relative;width:100%;height:200px;background:#03080d;border:1px solid var(--line);border-radius:10px;overflow:hidden">
+      <canvas id="cTerms" style="display:block;width:100%;height:200px"></canvas>
+      <div style="position:absolute;top:7px;left:9px;font-family:var(--mono);font-size:.67rem;color:var(--mute);background:rgba(3,8,13,.75);padding:2px 7px;border-radius:4px">u_n(x) terms + partial sum S_N(x) · x axis = normalized frequency k/k_max ∈ [0,1]</div>
+    </div>
+    <div id="termsLegend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:.74rem;color:var(--dim)"></div>
+  </div>
+
+  <!-- ===== SPECTRUM CURVE — NEW SECTION ===== -->
+  <div class="card">
+    <h2>7. Spectrum Curve w(k) <span class="sub">power of each frequency bin — before &amp; after filtering</span></h2>
+    <div class="spec-curve-wrap">
+      <canvas id="cSpectrum"></canvas>
+      <div class="spec-curve-lbl">SPECTRUM — normalized power w(k) per frequency bin</div>
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:.75rem;color:var(--dim);margin-top:8px;font-family:var(--mono);align-items:center">
+      <span style="display:flex;align-items:center;gap:6px">
+        <span style="width:18px;height:3px;background:#ffb347;display:inline-block;border-radius:2px"></span>
+        Before filter (raw input)
+      </span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span style="width:18px;height:3px;background:#00e0a4;display:inline-block;border-radius:2px"></span>
+        After filter (S_N filtered)
+      </span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span style="width:18px;height:3px;background:#ff5d6c;display:inline-block;border-radius:2px;opacity:.8"></span>
+        Cutoff frequency
+      </span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span style="width:18px;height:3px;background:#b48cff;display:inline-block;border-radius:2px"></span>
+        α threshold
+      </span>
+    </div>
+    <div class="formula-note" style="margin-top:8px">
+      X-axis = frequency (Hz) · Y-axis = normalized power w(k) ∈ [0,1] · 
+      <span style="color:var(--red)">Red dashed line</span> = cutoff (everything to the right → removed) · 
+      <span style="color:var(--violet)">Purple line</span> = α threshold (bins below → removed by spectral gate) ·
+      <span style="color:#ffb347">Orange</span> = raw noisy signal · 
+      <span style="color:var(--green)">Green</span> = filtered signal (appears after applying filter)
+    </div>
+  </div>
+  <!-- ========================================= -->
+
+  <!-- SPECTROGRAMS -->
+  <div class="card">
+    <h2>8. Spectrograms <span class="sub">before vs after filtering</span></h2>
+    <div class="grid2">
+      <div class="spec-wrap"><canvas id="specBefore"></canvas><div class="spec-lbl">BEFORE — RAW INPUT</div></div>
+      <div class="spec-wrap"><canvas id="specAfter"></canvas><div class="spec-lbl">AFTER — S_N FILTERED</div></div>
+    </div>
+    <div class="formula-note" style="margin-top:8px">Frequency: 0 Hz (bottom) → Nyquist (top). Brighter = higher energy. After filtering: cleaner voice band (300–3400 Hz), attenuated noise floor above cutoff.</div>
+  </div>
+
+  <!-- AUDIO -->
+  <div class="card">
+    <h2>9. Listen — A/B Comparison</h2>
+    <div class="players">
+      <div class="player"><h4>🎙️ Original (raw noisy)</h4><audio id="audOrig" controls></audio></div>
+      <div class="player"><h4>✨ Filtered — S_N(x)</h4><audio id="audRecon" controls></audio>
+        <div class="btn-row"><a id="dlLink" class="btn" style="display:none" download="filtered_series.wav">⬇ Download WAV</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THEORY -->
+  <div class="card">
+    <h2>10. Theory — Series of Functions <span class="sub">Analysis 3 · Exercises 2 &amp; 5</span></h2>
+    <div class="theory">
+      <h4>Pointwise convergence — weakest mode</h4>
+      <p>$\forall x \in \mathbb{R}_+,\quad S_N(x) \xrightarrow{N\to\infty} F(x)$. For each fixed frequency bin (fixed x), the weighted sum converges.</p>
+    </div>
+    <div class="theory uniform">
+      <h4>Uniform convergence — preserves continuity</h4>
+      <p>$\displaystyle\sup_{x \in [0,1]}\bigl|S_N(x)-F(x)\bigr| \xrightarrow{N\to\infty} 0$. All frequency bins converge at the same rate.</p>
+    </div>
+    <div class="theory normal">
+      <h4>Normal convergence (Weierstrass M-test) — strongest &amp; always holds here</h4>
+      <p>
+        $\displaystyle\|u_n\|_\infty = \frac{1}{\sqrt{n^3}+1}$ (attained at $x=0$).<br><br>
+        $\displaystyle\sum_{n=1}^{\infty}\|u_n\|_\infty \leq \sum_{n=1}^{\infty}\frac{1}{n^{3/2}} &lt; +\infty$ (Riemann series $p=3/2 &gt; 1$).<br><br>
+        By the <strong>Weierstrass M-test</strong>: the series converges <strong>normally</strong> on $\mathbb{R}_+$.<br>
+        Normal $\Rightarrow$ Uniform $\Rightarrow$ Pointwise.
+      </p>
+    </div>
+    <div class="formula-box" style="margin-top:10px">
+      $$\|u_n\|_\infty = \frac{1}{\sqrt{n^3}+1} \leq \frac{1}{n^{3/2}}
+      \qquad \Rightarrow \qquad
+      \sum_{n=1}^{\infty}\|u_n\|_\infty \leq \zeta\!\left(\tfrac{3}{2}\right) \approx 2.612 \quad (\text{converges})$$
+    </div>
+  </div>
+
+</div>
+
+<footer style="text-align:center;padding:28px;color:var(--mute);font-size:.75rem;border-top:1px solid var(--line);margin-top:10px">
+  Series of Functions · Analysis 3 · NHSAT-Algiers 2025/2026 · Pure HTML+CSS+JS · No backend required
+</footer>
+
+<script>
+const state = {
+  ctx: null, rawBuf: null, origData: null, reconData: null,
+  sr: 44100, noiseEst: 0,
+  params: { N: 20, alpha: 0.20, cutoff: 4000, win: 2048 },
+  zoom: 1, offset: 0,
+};
+
+const $i = id => document.getElementById(id);
+
+function u_n(n, x) {
+  return Math.exp(-Math.sqrt(n) * x * x) / (Math.sqrt(n * n * n) + 1);
+}
+
+function S_N(N, x) {
+  let s = 0;
+  for (let n = 0; n <= N; n++) s += u_n(n, x);
+  return s;
+}
+
+function u_n_sup(n) {
+  return 1 / (Math.sqrt(n * n * n) + 1);
+}
+
+function weierstrass_sum(N) {
+  let sum = 0;
+  for (let n = 1; n <= N; n++) sum += u_n_sup(n);
+  return sum;
+}
+
+function getConvergenceInfo(N) {
+  const wSum = weierstrass_sum(N);
+  const limit = 1.9;
+  const pct = Math.min(100, (wSum / limit) * 100);
+  return { convType: 'normal', wSum, pct };
+}
+
+function fft(re, im) {
+  const n = re.length;
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = -2 * Math.PI / len;
+    const wRe = Math.cos(ang), wIm = Math.sin(ang);
+    for (let i = 0; i < n; i += len) {
+      let cRe = 1, cIm = 0;
+      for (let k = 0; k < len / 2; k++) {
+        const a = i + k, b = a + len / 2;
+        const tRe = cRe * re[b] - cIm * im[b];
+        const tIm = cRe * im[b] + cIm * re[b];
+        re[b] = re[a] - tRe; im[b] = im[a] - tIm;
+        re[a] += tRe; im[a] += tIm;
+        const nRe = cRe * wRe - cIm * wIm;
+        cIm = cRe * wIm + cIm * wRe; cRe = nRe;
+      }
+    }
+  }
+}
+
+function ifft(re, im) {
+  for (let i = 0; i < im.length; i++) im[i] = -im[i];
+  fft(re, im);
+  const n = re.length;
+  for (let i = 0; i < n; i++) { re[i] /= n; im[i] = -im[i] / n; }
+}
+
+function hannWin(N) {
+  const w = new Float32Array(N);
+  for (let i = 0; i < N; i++) w[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (N - 1)));
+  return w;
+}
+
+/* ===== SPECTRUM CURVE DRAWING — NEW ===== */
+function drawSpectrumCurve(canvas, rawData, reconData, sr, params) {
+  if (!rawData) return;
+  const dpr = devicePixelRatio || 1;
+  const W = canvas.clientWidth || 600, H = canvas.clientHeight || 220;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  // background grid
+  ctx.strokeStyle = '#1a2433'; ctx.lineWidth = 1;
+  for (let i = 1; i < 5; i++) {
+    ctx.beginPath(); ctx.moveTo(0, H * i / 5); ctx.lineTo(W, H * i / 5); ctx.stroke();
+  }
+
+  const { cutoff, win, alpha } = params;
+  let fftSize = 1; while (fftSize < win) fftSize <<= 1;
+  const hann = hannWin(fftSize);
+
+  function getSpectrum(data) {
+    const re = new Float32Array(fftSize), im = new Float32Array(fftSize);
+    const len = Math.min(data.length, fftSize);
+    for (let i = 0; i < len; i++) re[i] = data[i] * hann[i];
+    fft(re, im);
+    const mag = new Float32Array(fftSize / 2 + 1);
+    for (let k = 0; k <= fftSize / 2; k++) mag[k] = Math.hypot(re[k], im[k]);
+    const maxMag = Math.max(...mag) || 1;
+    for (let k = 0; k < mag.length; k++) mag[k] /= maxMag;
+    return mag;
+  }
+
+  const rawMag = getSpectrum(rawData);
+  const nyquist = sr / 2;
+  const totalBins = rawMag.length;
+  const PAD = 30; // left padding for y labels
+  const plotW = W - PAD;
+
+  function freqToX(hz) { return PAD + (hz / nyquist) * plotW; }
+  function magToY(m)   { return H - 20 - m * (H - 40); }
+
+  // y-axis labels
+  ctx.fillStyle = '#5d6f86'; ctx.font = '10px JetBrains Mono, monospace'; ctx.textAlign = 'right';
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(v => {
+    const y = magToY(v);
+    ctx.fillText(v.toFixed(2), PAD - 4, y + 4);
+    ctx.strokeStyle = '#1a2433'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W, y); ctx.stroke();
+  });
+
+  // draw raw spectrum fill
+  ctx.beginPath();
+  for (let k = 0; k < totalBins; k++) {
+    const hz = k * nyquist / totalBins;
+    const x = freqToX(hz); const y = magToY(rawMag[k]);
+    k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.lineTo(freqToX(nyquist), magToY(0)); ctx.lineTo(PAD, magToY(0)); ctx.closePath();
+  ctx.fillStyle = 'rgba(255,179,71,0.07)'; ctx.fill();
+
+  // draw raw spectrum line
+  ctx.strokeStyle = '#ffb347'; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+  ctx.beginPath();
+  for (let k = 0; k < totalBins; k++) {
+    const hz = k * nyquist / totalBins;
+    const x = freqToX(hz); const y = magToY(rawMag[k]);
+    k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // draw filtered spectrum if available
+  if (reconData) {
+    const reconMag = getSpectrum(reconData);
+    ctx.beginPath();
+    for (let k = 0; k < totalBins; k++) {
+      const hz = k * nyquist / totalBins;
+      const x = freqToX(hz); const y = magToY(reconMag[k]);
+      k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.lineTo(freqToX(nyquist), magToY(0)); ctx.lineTo(PAD, magToY(0)); ctx.closePath();
+    ctx.fillStyle = 'rgba(0,224,164,0.08)'; ctx.fill();
+
+    ctx.strokeStyle = '#00e0a4'; ctx.lineWidth = 2; ctx.setLineDash([]);
+    ctx.beginPath();
+    for (let k = 0; k < totalBins; k++) {
+      const hz = k * nyquist / totalBins;
+      const x = freqToX(hz); const y = magToY(reconMag[k]);
+      k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // cutoff vertical line
+  const cutX = freqToX(cutoff);
+  ctx.strokeStyle = '#ff5d6c'; ctx.lineWidth = 1.8; ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(cutX, 0); ctx.lineTo(cutX, H - 20); ctx.stroke();
+  ctx.setLineDash([]);
+  // shaded "removed" zone
+  ctx.fillStyle = 'rgba(255,93,108,0.06)';
+  ctx.fillRect(cutX, 0, W - cutX, H - 20);
+  ctx.fillStyle = '#ff5d6c'; ctx.font = '10px JetBrains Mono, monospace'; ctx.textAlign = 'left';
+  ctx.fillText('cutoff ' + cutoff + ' Hz', cutX + 4, 14);
+
+  // alpha horizontal line
+  const alphaY = magToY(alpha);
+  ctx.strokeStyle = '#b48cff'; ctx.lineWidth = 1.4; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(PAD, alphaY); ctx.lineTo(W, alphaY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#b48cff';
+  ctx.fillText('α = ' + alpha.toFixed(2), PAD + 4, alphaY - 5);
+
+  // x-axis frequency labels
+  ctx.fillStyle = '#5d6f86'; ctx.font = '10px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+  [200, 500, 1000, 2000, 4000, 6000, 8000, 12000, 16000, 20000].forEach(hz => {
+    if (hz <= nyquist) {
+      const x = freqToX(hz);
+      ctx.fillText(hz >= 1000 ? (hz/1000).toFixed(hz >= 10000 ? 0 : 1) + 'k' : hz, x, H - 6);
+      ctx.strokeStyle = '#2a3a52'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, H - 20); ctx.lineTo(x, H - 16); ctx.stroke();
+    }
+  });
+
+  // axis label
+  ctx.fillStyle = '#3a4f66'; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+  ctx.fillText('Hz', W / 2, H - 1);
+}
+/* ======================================== */
+
+function applySeriesFilter(data, sr, params) {
+  const { N, alpha, cutoff, win } = params;
+  let W = 1; while (W < win) W <<= 1;
+  const hop = W / 2;
+  const hann = hannWin(W);
+  const out = new Float32Array(data.length);
+  const norm = new Float32Array(data.length);
+  const k_max = Math.max(1, Math.floor(cutoff * W / sr));
+  const S0 = S_N(N, 0);
+  const weights = new Float32Array(W / 2 + 1);
+  for (let k = 0; k <= W / 2; k++) {
+    if (k <= k_max) {
+      const x = k / k_max;
+      weights[k] = S_N(N, x) / (S0 + 1e-12);
+    } else {
+      weights[k] = 0;
+    }
+  }
+  let energyIn = 0, energyOut = 0;
+  let activeBins = 0;
+  for (let k = 0; k <= k_max; k++) {
+    if (weights[k] >= alpha) activeBins++;
+  }
+  for (let start = 0; start < data.length; start += hop) {
+    const re = new Float32Array(W), im = new Float32Array(W);
+    for (let i = 0; i < W; i++) {
+      const idx = start + i;
+      re[i] = (idx < data.length ? data[idx] : 0) * hann[i];
+    }
+    fft(re, im);
+    for (let k = 0; k < W / 2; k++) {
+      const mag2 = re[k] * re[k] + im[k] * im[k];
+      energyIn += mag2;
+      let w = weights[Math.min(k, W / 2)];
+      if (w < alpha) w = 0;
+      if (w > 0) {
+        re[k] *= w; im[k] *= w;
+        const kk = W - k;
+        if (kk < W && kk !== k) { re[kk] *= w; im[kk] *= w; }
+        energyOut += re[k] * re[k] + im[k] * im[k];
+      } else {
+        re[k] = 0; im[k] = 0;
+        const kk = W - k;
+        if (kk < W) { re[kk] = 0; im[kk] = 0; }
+      }
+    }
+    ifft(re, im);
+    for (let i = 0; i < W; i++) {
+      const idx = start + i;
+      if (idx >= data.length) break;
+      out[idx] += re[i] * hann[i];
+      norm[idx] += hann[i] * hann[i];
+    }
+  }
+  for (let i = 0; i < out.length; i++) {
+    if (norm[i] > 1e-8) out[i] /= norm[i];
+  }
+  const noiseRemovedPct = Math.max(0, 100 * (1 - energyOut / (energyIn + 1e-12)));
+  const snr = 10 * Math.log10((energyOut + 1e-12) / (Math.abs(energyIn - energyOut) + 1e-12));
+  const convInfo = getConvergenceInfo(N);
+  return { recon: out, activeBins, noiseRemovedPct, snr, convType: convInfo.convType, wSum: convInfo.wSum, convPct: convInfo.pct };
+}
+
+function encodeWAV(samples, sr) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true);
+  w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, samples.length * 2, true);
+  let off = 44;
+  for (let i = 0; i < samples.length; i++, off += 2) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+function drawSignal(canvas, data, color) {
+  if (!data) return;
+  const dpr = devicePixelRatio || 1;
+  const W = canvas.clientWidth || 400, H = canvas.clientHeight || 160;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#1a2433'; ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(0, H * i / 4); ctx.lineTo(W, H * i / 4); ctx.stroke(); }
+  ctx.strokeStyle = '#2a3a52';
+  ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+  const zoom = state.zoom, ofr = state.offset;
+  const visN = Math.floor(data.length / zoom);
+  const start = Math.floor(ofr * (data.length - visN));
+  let peak = 0;
+  for (let i = 0; i < visN; i++) { const v = Math.abs(data[start + i] || 0); if (v > peak) peak = v; }
+  const scale = peak > 0 ? H * 0.44 / peak : 1;
+  ctx.strokeStyle = color; ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  for (let px = 0; px < W; px++) {
+    const i = start + Math.floor(px * visN / W);
+    const y = H / 2 - (data[i] || 0) * scale;
+    px === 0 ? ctx.moveTo(px, y) : ctx.lineTo(px, y);
+  }
+  ctx.stroke();
+}
+
+function drawTerms(canvas, N) {
+  const dpr = devicePixelRatio || 1;
+  const W = canvas.clientWidth || 600, H = canvas.clientHeight || 200;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#1a2433'; ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(0, H * i / 4); ctx.lineTo(W, H * i / 4); ctx.stroke(); }
+  const xMax = 1.0;
+  const colors = ['#ff5d6c','#ffb347','#ffe066','#00e0a4','#4cc9ff','#b48cff'];
+  const showN = Math.min(N, 5);
+  const legend = $i('termsLegend');
+  legend.innerHTML = '';
+  for (let n = 0; n <= showN; n++) {
+    const c = colors[n % colors.length];
+    ctx.strokeStyle = c; ctx.lineWidth = n === 0 ? 1.8 : 1.2;
+    ctx.setLineDash(n > 0 ? [4, 3] : []);
+    ctx.beginPath();
+    for (let px = 0; px < W; px++) {
+      const x = (px / W) * xMax;
+      const y = H - u_n(n, x) * H * 2.5 - 5;
+      px === 0 ? ctx.moveTo(px, Math.max(5, Math.min(H-5, y))) : ctx.lineTo(px, Math.max(5, Math.min(H-5, y)));
+    }
+    ctx.stroke();
+    const label = n === 0 ? 'u₀(x)=1 [baseline]' : `u_${n}(x)`;
+    legend.innerHTML += `<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:3px;background:${c};display:inline-block;border-radius:2px"></span>${label}</span>`;
+  }
+  const S0 = S_N(N, 0);
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.2; ctx.setLineDash([]);
+  ctx.beginPath();
+  for (let px = 0; px < W; px++) {
+    const x = (px / W) * xMax;
+    const y = H - (S_N(N, x) / (S0 + 1e-9)) * H * 0.85 - 5;
+    px === 0 ? ctx.moveTo(px, y) : ctx.lineTo(px, y);
+  }
+  ctx.stroke();
+  legend.innerHTML += `<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:3px;background:#fff;display:inline-block;border-radius:2px"></span><strong>w(x)=S_N(x)/S_N(0) [filter weight]</strong></span>`;
+}
+
+function drawSpectrogram(canvas, data, sr) {
+  if (!data) return;
+  const dpr = devicePixelRatio || 1;
+  const W = canvas.clientWidth || 400, H = canvas.clientHeight || 170;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#03080d'; ctx.fillRect(0, 0, W, H);
+  const winSz = 512, hop = 256;
+  const hann = hannWin(winSz);
+  const frames = Math.floor((data.length - winSz) / hop);
+  if (frames <= 0) return;
+  const cW = W / frames, bins = winSz / 2;
+  for (let f = 0; f < frames; f++) {
+    const re = new Float32Array(winSz), im = new Float32Array(winSz);
+    for (let i = 0; i < winSz; i++) re[i] = (data[f * hop + i] || 0) * hann[i];
+    fft(re, im);
+    for (let b = 0; b < bins; b++) {
+      const m = Math.hypot(re[b], im[b]) / winSz;
+      const db = 20 * Math.log10(m + 1e-6);
+      const t = Math.max(0, Math.min(1, (db + 60) / 60));
+      const r = Math.round(255 * Math.min(1, Math.max(0, t * 1.8 - 0.6)));
+      const g = Math.round(255 * Math.min(1, Math.max(0, t * 1.6)));
+      const bl = Math.round(255 * Math.min(1, Math.max(0, 0.4 - t * 0.4)));
+      ctx.fillStyle = `rgb(${r},${g},${bl})`;
+      ctx.fillRect(f * cW, H - (b / bins) * H, Math.ceil(cW) + 1, -H / bins - 1);
+    }
+  }
+}
+
+function estimateNoise(data) {
+  const N = Math.min(data.length, 1 << 14);
+  let hi = 0, tot = 0;
+  const re = new Float32Array(N), im = new Float32Array(N);
+  for (let i = 0; i < N; i++) re[i] = data[i];
+  fft(re, im);
+  for (let k = 0; k < N / 2; k++) {
+    const e = re[k] * re[k] + im[k] * im[k];
+    tot += e;
+    if (k > N / 4) hi += e;
+  }
+  return Math.min(hi / (tot + 1e-12) * 2.5, 1);
+}
+
+async function loadFile(file) {
+  setStatus(`Decoding ${file.name}…`, 'busy');
+  try {
+    if (!state.ctx) state.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const arr = await file.arrayBuffer();
+    const buf = await state.ctx.decodeAudioData(arr.slice(0));
+    state.rawBuf = buf; state.sr = buf.sampleRate;
+    const mono = new Float32Array(buf.length);
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < buf.length; i++) mono[i] += d[i];
+    }
+    for (let i = 0; i < mono.length; i++) mono[i] /= buf.numberOfChannels;
+    state.origData = mono;
+    state.noiseEst = estimateNoise(mono);
+    $i('fileInfo').classList.add('show');
+    $i('fiName').textContent = file.name;
+    $i('fiDur').textContent = buf.duration.toFixed(2) + ' s';
+    $i('fiSr').textContent = buf.sampleRate + ' Hz';
+    $i('fiN').textContent = buf.length.toLocaleString();
+    $i('fiNoise').textContent = (state.noiseEst * 100).toFixed(1) + '%';
+    $i('audOrig').src = URL.createObjectURL(file);
+    $i('autoBtn').disabled = false;
+    $i('reconBtn').disabled = false;
+    drawSignal($i('cOrig'), mono, '#4cc9ff');
+    drawSignal($i('cNoisy'), mono, '#ffb347');
+    $i('sOrig').textContent = 'N=' + buf.length.toLocaleString();
+    $i('sNoisy').textContent = 'σ≈' + state.noiseEst.toFixed(3);
+    drawSpectrogram($i('specBefore'), mono, buf.sampleRate);
+    drawTerms($i('cTerms'), state.params.N);
+    drawSpectrumCurve($i('cSpectrum'), mono, null, buf.sampleRate, state.params);
+    updateFormula();
+    setStatus('Signal loaded. Click "Auto Detect + Filter" to process.', 'ready');
+  } catch (e) {
+    setStatus('Error decoding file: ' + e.message, 'error');
+  }
+}
+
+function autoDetect() {
+  if (!state.origData) return;
+  const noise = state.noiseEst;
+  const suggN = Math.round(10 + (1 - noise) * 40);
+  const suggAlpha = Math.round(5 + noise * 40);
+  const suggCut = noise > 0.4 ? 3000 : 4500;
+  $i('sN').value = suggN; $i('sAlpha').value = suggAlpha; $i('sCut').value = suggCut;
+  syncSliders();
+  setStatus('Auto-detected parameters. Running filter…', 'busy');
+  setTimeout(runFilter, 30);
+}
+
+function runFilter() {
+  if (!state.origData) return;
+  setStatus('Applying S_N(x) series filter…', 'busy');
+  setTimeout(() => {
+    try {
+      const res = applySeriesFilter(state.origData, state.sr, state.params);
+      state.reconData = res.recon;
+      drawSignal($i('cRecon'), res.recon, '#00e0a4');
+      drawSpectrogram($i('specAfter'), res.recon, state.sr);
+      drawTerms($i('cTerms'), state.params.N);
+      drawSpectrumCurve($i('cSpectrum'), state.origData, res.recon, state.sr, state.params);
+      $i('mActive').textContent = res.activeBins + ' bins';
+      $i('mNoise').textContent = res.noiseRemovedPct.toFixed(1) + '%';
+      $i('mSNR').textContent = (res.snr >= 0 ? '+' : '') + res.snr.toFixed(1) + ' dB';
+      $i('mConv').textContent = res.wSum.toFixed(3);
+      $i('sRecon').textContent = 'N=' + state.params.N + ' · w=S_N(x)/S_N(0)';
+      const pill = $i('cpill');
+      pill.className = 'cpill normal';
+      pill.textContent = `NORMAL · Σ‖u_n‖∞ ≈ ${res.wSum.toFixed(3)} < +∞`;
+      const wav = encodeWAV(res.recon, state.sr);
+      const url = URL.createObjectURL(wav);
+      $i('audRecon').src = url;
+      const dl = $i('dlLink');
+      dl.href = url; dl.style.display = 'inline-flex';
+      updateFormula();
+      setStatus(`Filter applied · N=${state.params.N} · NORMAL convergence · Weierstrass Σ‖u_n‖∞ ≈ ${res.wSum.toFixed(4)} < +∞`, 'ready');
+    } catch (e) {
+      setStatus('Filter error: ' + e.message, 'error');
+    }
+  }, 20);
+}
+
+function loadDemo() {
+  setStatus('Generating synthetic noisy signal…', 'busy');
+  const sr = 16000, dur = 3, N = sr * dur;
+  const data = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const t = i / sr;
+    const env = 0.5 * (1 + Math.sin(2 * Math.PI * 2.5 * t));
+    const voice = 0.4 * env * (
+      Math.sin(2 * Math.PI * (300 + 60 * Math.sin(2 * Math.PI * 2 * t)) * t) +
+      0.5 * Math.sin(2 * Math.PI * 1100 * t) +
+      0.25 * Math.sin(2 * Math.PI * 2300 * t)
+    );
+    const noise = 0.18 * (Math.random() * 2 - 1) + 0.1 * Math.sin(2 * Math.PI * 120 * t);
+    data[i] = voice + noise;
+  }
+  state.origData = data; state.sr = sr;
+  state.noiseEst = estimateNoise(data);
+  $i('fileInfo').classList.add('show');
+  $i('fiName').textContent = 'demo_noisy_signal.wav';
+  $i('fiDur').textContent = dur + ' s';
+  $i('fiSr').textContent = sr + ' Hz';
+  $i('fiN').textContent = N.toLocaleString();
+  $i('fiNoise').textContent = (state.noiseEst * 100).toFixed(1) + '%';
+  const wav = encodeWAV(data, sr);
+  $i('audOrig').src = URL.createObjectURL(wav);
+  $i('autoBtn').disabled = false;
+  $i('reconBtn').disabled = false;
+  drawSignal($i('cOrig'), data, '#4cc9ff');
+  drawSignal($i('cNoisy'), data, '#ffb347');
+  drawSpectrogram($i('specBefore'), data, sr);
+  drawTerms($i('cTerms'), state.params.N);
+  drawSpectrumCurve($i('cSpectrum'), data, null, sr, state.params);
+  updateFormula();
+  setStatus('Demo signal ready. Click "Auto Detect + Filter".', 'ready');
+}
+
+function updateFormula() {
+  const { N, alpha, cutoff, win } = state.params;
+  const wSum = weierstrass_sum(N).toFixed(4);
+  const k_max = Math.floor(cutoff * win / state.sr);
+  $i('formulaFilter').innerHTML = `
+    $$S_{${N}}(x) = \\sum_{n=0}^{${N}} \\frac{e^{-\\sqrt{n}\\,x^2}}{\\sqrt{n^3}+1},
+    \\quad x = \\frac{k}{k_{\\max}} \\in [0,1] \\subset \\mathbb{R}_+,
+    \\quad k_{\\max} = ${k_max}$$
+    $$\\text{Filter weight: } w(k) = \\frac{S_{${N}}(k/k_{\\max})}{S_{${N}}(0)}
+    \\qquad
+    \\sum_{n=1}^{${N}}\\|u_n\\|_\\infty \\approx ${wSum} < +\\infty$$
+  `;
+  $i('formulaNote').textContent =
+    `N=${N} terms · α=${alpha.toFixed(2)} · cutoff=${cutoff} Hz · k_max=${k_max} · Weierstrass Σ‖u_n‖∞ ≈ ${wSum} · NORMAL convergence always holds`;
+  if (window.renderMathInElement) {
+    renderMathInElement($i('formulaFilter'), { delimiters: [{ left: '$$', right: '$$', display: true }] });
+  }
+}
+
+function setStatus(msg, kind) {
+  $i('status').className = 'status ' + kind;
+  $i('statusMsg').textContent = msg;
+}
+
+function setPct(el) {
+  const p = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.setProperty('--p', p + '%');
+}
+
+function syncSliders() {
+  state.params.N = +$i('sN').value;
+  state.params.alpha = +$i('sAlpha').value / 100;
+  state.params.cutoff = +$i('sCut').value;
+  state.params.win = +$i('sWin').value;
+  $i('vN').textContent = state.params.N;
+  $i('vAlpha').textContent = state.params.alpha.toFixed(2);
+  $i('vCut').textContent = state.params.cutoff;
+  $i('vWin').textContent = state.params.win;
+  [$i('sN'), $i('sAlpha'), $i('sCut'), $i('sWin')].forEach(setPct);
+  updateFormula();
+  drawTerms($i('cTerms'), state.params.N);
+  if (state.origData) drawSpectrumCurve($i('cSpectrum'), state.origData, state.reconData, state.sr, state.params);
+}
+
+const drop = $i('drop'), fi = $i('fileInput');
+drop.addEventListener('click', () => fi.click());
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('drag'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+fi.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+[$i('sN'), $i('sAlpha'), $i('sCut'), $i('sWin')].forEach(el => {
+  el.addEventListener('input', () => syncSliders());
+  el.addEventListener('change', () => { if (state.origData) runFilter(); });
+  setPct(el);
+});
+$i('autoBtn').addEventListener('click', autoDetect);
+$i('reconBtn').addEventListener('click', runFilter);
+$i('demoBtn').addEventListener('click', loadDemo);
+$i('zoom').addEventListener('input', e => {
+  state.zoom = +e.target.value;
+  $i('zoomVal').textContent = state.zoom.toFixed(1) + '×';
+  setPct(e.target); redrawAll();
+});
+$i('offset').addEventListener('input', e => {
+  state.offset = +e.target.value / 100;
+  $i('offVal').textContent = (+e.target.value).toFixed(0) + '%';
+  setPct(e.target); redrawAll();
+});
+[$i('zoom'), $i('offset')].forEach(setPct);
+
+function redrawAll() {
+  if (state.origData) {
+    drawSignal($i('cOrig'), state.origData, '#4cc9ff');
+    drawSignal($i('cNoisy'), state.origData, '#ffb347');
+  }
+  if (state.reconData) drawSignal($i('cRecon'), state.reconData, '#00e0a4');
+}
+
+window.addEventListener('resize', () => {
+  redrawAll();
+  if (state.origData) {
+    drawSpectrogram($i('specBefore'), state.origData, state.sr);
+    drawSpectrumCurve($i('cSpectrum'), state.origData, state.reconData, state.sr, state.params);
+  }
+  if (state.reconData) drawSpectrogram($i('specAfter'), state.reconData, state.sr);
+  drawTerms($i('cTerms'), state.params.N);
+});
+
+syncSliders();
+drawTerms($i('cTerms'), state.params.N);
+setStatus('Ready. Upload a WAV/MP3 or click "Demo Signal" to test.', 'ready');
+</script>
+</body>
+</html>
